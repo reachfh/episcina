@@ -77,3 +77,28 @@ its place.
 * If the caller holds the pool longer the specified pool timeout then
   an exit message is sent to the calling process and the connection is
   returned to the pool.
+
+
+Stats
+-------
+
+You can query the pool to get its current utilization:
+
+```erlang
+episcina:get_pool_stats(foo).
+```
+
+It returns a map with the following keys:
+
+* `size` - The configured size of the pool
+* `connections` - Number of connections currently in the pool
+* `working` - Number of connections currently being used by clients
+* `waiting` - Number of clients waiting for a connection
+
+You can get a list of registered pools:
+
+```erlang
+episcina:get_pools().
+```
+
+It returns a list of pool names (atoms).

@@ -10,6 +10,7 @@
 -export([start_pools/1, start_pool/5, start_pool/1,
          stop/1,
          get_connection/1, get_connection/2,
+         get_pool_stats/1, get_pools/0,
          return_connection/2]).
 
 %%%===================================================================
@@ -72,6 +73,21 @@ get_connection(Name, Timeout) ->
 -spec return_connection(name(), connection()) -> ok.
 return_connection(Name, C) ->
     epna_pool:return_connection(Name, C).
+
+%% @doc Get pool stats
+-spec get_pool_stats(name()) -> map().
+get_pool_stats(Name) ->
+    epna_pool:get_stats(Name).
+
+%% @doc Get list of pools
+-spec get_pools() -> list(name()).
+get_pools() ->
+    KeyPat = {n, l, {epna_pool, '$1'}},
+    HeadPat = {KeyPat, '_', '_'},
+    Guard = [],
+    Result = ['$1'],
+    SelPattern = {HeadPat, Guard, Result},
+    gproc:select([SelPattern]).
 
 %%%===================================================================
 %%% Internal functions

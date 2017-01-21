@@ -9,7 +9,9 @@
 
 %% API
 -export([start_link/5, stop/1,
-         get_connection/1, get_connection/2, return_connection/2]).
+         get_connection/1, get_connection/2, return_connection/2,
+         get_stats/1
+        ]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -99,6 +101,11 @@ return_connection(Name, C) ->
     {Pid, _} = gproc:await(make_registered_name(Name)),
     gen_server:cast(Pid, {return_connection, C}).
 
+-spec get_stats(episcina:name()) -> map().
+get_stats(Name) ->
+    {Pid, _} = gproc:await(make_registered_name(Name)),
+    gen_server:call(Pid, get_stats).
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -147,6 +154,19 @@ handle_call(get_connection, From,
                     {noreply, State#state{waiting = queue:in(From, Waiting)}}
             end
     end;
+handle_call(get_stats, _From,
+            #state{size = Size,
+                   connections = Connections,
+                   working = Working,
+                   waiting = Waiting
+                  } = State) ->
+    Reply = #{size => Size,
+              connections => length(Connections),
+              working => dict:size(Working),
+              waiting => queue:len(Waiting)
+             },
+    {reply, Reply, State};
+
 handle_call(Request, _From, State) ->
     %% Trap unsupported calls
     {stop, {unsupported_call, Request}, State}.
